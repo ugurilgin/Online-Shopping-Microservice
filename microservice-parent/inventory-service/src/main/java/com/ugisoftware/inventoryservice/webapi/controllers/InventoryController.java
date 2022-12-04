@@ -1,19 +1,24 @@
 package com.ugisoftware.inventoryservice.webapi.controllers;
 
 import com.ugisoftware.inventoryservice.business.abstracts.InventoryService;
+import com.ugisoftware.inventoryservice.business.concretes.InventoryManager;
 import com.ugisoftware.inventoryservice.entities.concretes.Inventory;
+import com.ugisoftware.inventoryservice.entities.dto.response.InventoryResponse;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory/")
 public class InventoryController implements InventoryService {
-    private InventoryService inventoryService;
-    public  InventoryController(InventoryService inventoryService)
+    private InventoryManager inventoryService;
+    public  InventoryController(InventoryManager inventoryService)
     {
         this.inventoryService=inventoryService;
     }
-    @GetMapping("/{skuCode}")
-    public boolean isInStock(@PathVariable String skuCode) {
+    @GetMapping
+    public List<InventoryResponse> isInStock(@RequestParam List<String> skuCode) {
+
         return inventoryService.isInStock(skuCode);
     }
 }
