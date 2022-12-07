@@ -22,8 +22,8 @@ import java.util.UUID;
 public class OrderManager implements OrderService{
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
-    public OrderManager(OrderRepository orderRepository,WebClient webClient)
+    private final WebClient.Builder webClient;
+    public OrderManager(OrderRepository orderRepository,WebClient.Builder webClient)
     {
 
         this.orderRepository=orderRepository;
@@ -43,8 +43,8 @@ public class OrderManager implements OrderService{
         List<String> skuCodes = order.getOrderLineItemsList().stream()
                 .map(OrderLinesItem::getSkuCode)
                 .toList();
-        InventoryResponse[] inventoryResponsArray = webClient.get()
-                .uri("http://localhost:8084/api/inventory",
+        InventoryResponse[] inventoryResponsArray = webClient.build().get()
+                .uri("http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
