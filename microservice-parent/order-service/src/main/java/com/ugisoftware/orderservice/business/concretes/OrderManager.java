@@ -29,8 +29,8 @@ public class OrderManager implements OrderService{
         this.orderRepository=orderRepository;
         this.webClient=webClient;
     }
-    public void placeOrder(OrderRequest orderRequest) {
-        Order order=new Order();
+    public String placeOrder(OrderRequest orderRequest) {
+        Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
         List<OrderLinesItem> orderLineItems = orderRequest.getOrderLineItemsDtoList()
@@ -39,12 +39,15 @@ public class OrderManager implements OrderService{
                 .toList();
 
         order.setOrderLineItemsList(orderLineItems);
-//Call Inventory service if product exist in the stock save it.
+
         List<String> skuCodes = order.getOrderLineItemsList().stream()
                 .map(OrderLinesItem::getSkuCode)
                 .toList();
+
+        // Call Inventory Service, and place order if product is in
+        // stock
         InventoryResponse[] inventoryResponsArray = webClient.build().get()
-                .uri("http://inventory-service/api/inventory",
+        		 .uri("http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
@@ -55,6 +58,7 @@ public class OrderManager implements OrderService{
 
         if(allProductsInStock){
             orderRepository.save(order);
+            return "Order Placed Successfully";
         } else {
             throw new IllegalArgumentException("Product is not in stock, please try again later");
         }

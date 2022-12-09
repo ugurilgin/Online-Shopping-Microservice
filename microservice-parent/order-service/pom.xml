@@ -43,10 +43,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
         </dependency>
-          <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-cloud-starter-actuator</artifactId>
-        </dependency>
+      <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+    <version>1.2.5.RELEASE</version>
+</dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
