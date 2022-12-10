@@ -8,10 +8,14 @@ import com.ugisoftware.orderservice.entities.dto.request.OrderLineItemsDto;
 import com.ugisoftware.orderservice.entities.dto.request.OrderRequest;
 
 import com.ugisoftware.orderservice.entities.dto.response.InventoryResponse;
+import com.ugisoftware.orderservice.event.OrderPlacedEvent;
+
 import lombok.RequiredArgsConstructor;
 
 import brave.Span;
 import brave.Tracer;
+
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -27,12 +31,14 @@ public class OrderManager implements OrderService{
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClient;
     private final Tracer tracer;
-    public OrderManager(OrderRepository orderRepository,WebClient.Builder webClient,Tracer tracer)
+    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+    public OrderManager(OrderRepository orderRepository,WebClient.Builder webClient,Tracer tracer,KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate)
     {
 
         this.orderRepository=orderRepository;
         this.webClient=webClient;
         this.tracer=tracer;
+        this.kafkaTemplate=kafkaTemplate;
     }
     public String placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
@@ -64,6 +70,7 @@ public class OrderManager implements OrderService{
                 .allMatch(InventoryResponse::isInStock);
 
         if(allProductsInStock){
+        	kafkaTemplate.send("notificationTopic",new OrderPlacedEvent(order.getOrderNumber()));
             orderRepository.save(order);
             return "Order Placed Successfully";
         } else {
