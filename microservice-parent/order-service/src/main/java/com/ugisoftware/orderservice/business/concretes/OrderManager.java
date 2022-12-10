@@ -3,7 +3,7 @@ package com.ugisoftware.orderservice.business.concretes;
 import com.ugisoftware.orderservice.business.abstracts.OrderService;
 import com.ugisoftware.orderservice.dataAccess.OrderRepository;
 import com.ugisoftware.orderservice.entities.concretes.Order;
-import com.ugisoftware.orderservice.entities.concretes.OrderLinesItem;
+import com.ugisoftware.orderservice.entities.concretes.OrderLineItems;
 import com.ugisoftware.orderservice.entities.dto.request.OrderLineItemsDto;
 import com.ugisoftware.orderservice.entities.dto.request.OrderRequest;
 
@@ -44,7 +44,7 @@ public class OrderManager implements OrderService{
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
-        List<OrderLinesItem> orderLineItems = orderRequest.getOrderLineItemsDtoList()
+        List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
                 .stream()
                 .map(this::mapToDto)
                 .toList();
@@ -52,44 +52,46 @@ public class OrderManager implements OrderService{
         order.setOrderLineItemsList(orderLineItems);
 
         List<String> skuCodes = order.getOrderLineItemsList().stream()
-                .map(OrderLinesItem::getSkuCode)
+                .map(OrderLineItems::getSkuCode)
                 .toList();
+
         Span inventoryServiceLookup = tracer.nextSpan().name("InventoryServiceLookup");
+
         try (Tracer.SpanInScope isLookup = tracer.withSpanInScope(inventoryServiceLookup.start())) {
-        // Call Inventory Service, and place order if product is in
-        // stock
-        inventoryServiceLookup.tag("call", "inventory-service");
-        InventoryResponse[] inventoryResponsArray = webClient.build().get()
-        		 .uri("http://inventory-service/api/inventory",
-                        uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
-                .retrieve()
-                .bodyToMono(InventoryResponse[].class)
-                .block();
 
-        boolean allProductsInStock = Arrays.stream(inventoryResponsArray)
-                .allMatch(InventoryResponse::isInStock);
+            inventoryServiceLookup.tag("call", "inventory-service");
+            // Call Inventory Service, and place order if product is in
+            // stock
+            InventoryResponse[] inventoryResponsArray = webClient.build().get()
+                    .uri("http://inventory-service/api/inventory",
+                            uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
+                    .retrieve()
+                    .bodyToMono(InventoryResponse[].class)
+                    .block();
 
-        if(allProductsInStock){
-        	kafkaTemplate.send("notificationTopic",new OrderPlacedEvent(order.getOrderNumber()));
-            orderRepository.save(order);
-            return "Order Placed Successfully";
-        } else {
-            throw new IllegalArgumentException("Product is not in stock, please try again later");
+            boolean allProductsInStock = Arrays.stream(inventoryResponsArray)
+                    .allMatch(InventoryResponse::isInStock);
+
+            if (allProductsInStock) {
+                orderRepository.save(order);
+                kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
+                return "Order Placed Successfully";
+            } else {
+                throw new IllegalArgumentException("Product is not in stock, please try again later");
+            }
+        } finally {
+            inventoryServiceLookup.flush();
         }
-        }
-        finally {
-        	 inventoryServiceLookup.flush();
-		}
     }
 
-    private OrderLinesItem mapToDto(OrderLineItemsDto orderLineItemsDto) {
-        OrderLinesItem orderLineItems = new OrderLinesItem();
+    private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {
+        OrderLineItems orderLineItems = new OrderLineItems();
         orderLineItems.setPrice(orderLineItemsDto.getPrice());
         orderLineItems.setQuantity(orderLineItemsDto.getQuantity());
         orderLineItems.setSkuCode(orderLineItemsDto.getSkuCode());
         return orderLineItems;
     }
-
-
-
 }
+
+
+

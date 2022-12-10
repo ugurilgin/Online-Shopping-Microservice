@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderLinesItem{
+public class OrderLineItems{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
