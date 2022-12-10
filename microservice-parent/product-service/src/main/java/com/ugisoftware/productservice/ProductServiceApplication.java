@@ -12,7 +12,6 @@ public class ProductServiceApplication {
 
 	public static void main(String[] args) {
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT +0:00"));
-
 		SpringApplication.run(ProductServiceApplication.class, args);
 
 	}
