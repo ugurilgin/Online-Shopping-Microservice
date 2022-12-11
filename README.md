@@ -48,3 +48,6 @@ Docker kapsayıcısı, bir uygulamanın tüm kodlarını ve bağımlılıkların
 Sadece bir kaynak sisteminiz ve bir hedef sisteminiz olduğunda, bu sistemler arası veri transferi yapmanız gerektiğinde çözüm basittir. Ancak birçok kaynak, birçok hedef sisteminiz olduğunda ve hepsinin birbirleriyle veri transferi yapması gerektiğinde işler gerçekten karmaşık hale gelecek ve herbir sistemin birbiri ile entegrasyonu gerekecektir. Bu entegrasyonlar . protokol seçimi, verilerin nasıl aktarılacağı (TCP, HTTP, FTP, JDBC, REST, SOAP vb), veri formatı, verilerin nasıl parse edileceği (JSON, CSV, XML, Avro, Thrift vb) gibi birçok zorluğu beraberinde getirir. Bunlara ek olarak bir kaynak sisteme yapılan her entegrasyon o sistem üzerinde ek yük yaratacaktır. Apache Kafka bu sorunları aşmak için doğru çözüm olacaktır.
 ### Zookeeper
 ZooKeeper, dağıtık yapıdaki sistemlere koordinasyon hizmeti sağlayan java tabanlı bir yazılımdır.
+## Dockerizing
+mvn clean compile jib:build
+docker compose up -d 
