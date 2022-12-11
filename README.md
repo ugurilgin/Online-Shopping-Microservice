@@ -49,5 +49,5 @@ Sadece bir kaynak sisteminiz ve bir hedef sisteminiz olduğunda, bu sistemler ar
 ### Zookeeper
 ZooKeeper, dağıtık yapıdaki sistemlere koordinasyon hizmeti sağlayan java tabanlı bir yazılımdır.
 ## Dockerizing
-mvn clean compile jib:build
-docker compose up -d 
+* mvn clean compile jib:build
+* docker compose up -d 
